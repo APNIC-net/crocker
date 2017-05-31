@@ -1,0 +1,32 @@
+name:                crocker
+version:             0.1.0.0
+-- synopsis:
+-- description:
+homepage:            https://github.com/codebje/crocker#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Byron Ellacott
+maintainer:          example@example.com
+copyright:           Byron Ellacott
+category:            Web
+build-type:          Simple
+cabal-version:       >=1.10
+extra-source-files:  README.md
+
+executable crocker
+  hs-source-dirs:      src
+  main-is:             Main.hs
+  other-modules:       Reaper
+  default-language:    Haskell2010
+  ghc-options:         -Wall -threaded -rtsopts=none -no-rtsopts-suggestions
+  build-depends:       base >= 4.7 && < 5
+                     , attoparsec
+                     , cron
+                     , inline-c
+                     , monad-unlift
+                     , monad-unlift-ref
+                     , mtl
+                     , pid1
+                     , stm
+                     , text
+                     , unix
