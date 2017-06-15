@@ -36,7 +36,5 @@ process running very slowly will lose executions rather than overrun an executio
 Many of the functions for handling sub-process reaping are based on the code in [pid1][pid1], though regrettably
 nothing in that code base was usable directly, as it serves a different purpose.
 
-The 
-
 [pid1]: https://github.com/fpco/pid1
 [zombie]: https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/
