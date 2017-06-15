@@ -31,6 +31,20 @@ before the command has completed, the command will be immediately re-executed on
 scheduled execution time elapses before a command has completed, only one subsequent execution will be queued - a
 process running very slowly will lose executions rather than overrun an execution queue.
 
+Here's an example Dockerfile:
+
+```Dockerfile
+FROM busybox
+
+ADD https://github.com/APNIC-net/crocker/releases/download/v0.1.0/crocker /crocker
+RUN chmod a+x /crocker
+
+ENTRYPOINT ["/crocker", "-A", "@daily", "/bin/echo", "it is a brand new day"]
+```
+
+The binary is static, so you may use it in a container from `scratch`, but you will need to mark it executable. This
+means you cannot `ADD` it by URL.
+
 ## Credits
 
 Many of the functions for handling sub-process reaping are based on the code in [pid1][pid1], though regrettably
