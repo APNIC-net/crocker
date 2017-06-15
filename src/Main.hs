@@ -17,7 +17,7 @@ import           System.Cron
 import           System.IO.Error                (isDoesNotExistError)
 import           System.Environment             (getArgs)
 import           System.Exit                    (ExitCode (ExitFailure), exitWith)
-import           System.Posix.Process           (getAnyProcessStatus)
+import           System.Posix.Process           (getAnyProcessStatus, getProcessID)
 import           System.Posix.Signals           (Handler (Catch), installHandler, sigCHLD, sigINT, sigTERM, sigKILL,
                                                  signalProcess, setStoppedChildFlag, Signal)
 import           System.Posix.Types             (ProcessID)
@@ -57,7 +57,7 @@ runConfiguration conf@(Configuration _ sched cmd) = do
     now <- getCurrentTime
     let maxSleep = 2^(20 :: Integer)
     let next = nextMatch sched now
-    let delay = round . (* 1000000) <$> flip diffUTCTime now <$> next :: Maybe Integer
+    let delay = round . (* 1000000) . flip diffUTCTime now <$> next :: Maybe Integer
     let sleep = maybe maxSleep (max maxSleep) delay
     threadDelay (fromIntegral sleep)
     upd <- getCurrentTime
@@ -70,9 +70,13 @@ tt = pid1 $ getConfiguration (words "* * * * * /bin/date") >>= runConfiguration
 
 main :: IO ()
 main = do
-    conf <- getArgs >>= getConfiguration
-    when (runAtStart conf) $ callProcess (head $ command conf) (tail $ command conf)
-    pid1 $ runConfiguration conf
+    pid <- getProcessID
+    if pid == 1
+    then do
+        conf <- getArgs >>= getConfiguration
+        when (runAtStart conf) $ callProcess (head $ command conf) (tail $ command conf)
+        pid1 $ runConfiguration conf
+    else putStrLn "This program must be run as PID 1 inside a docker container."
 
 {- pid1 package isn't general purpose enough for this, so below code is largely taken from there  -}
 
