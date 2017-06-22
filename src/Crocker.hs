@@ -5,7 +5,9 @@ module Crocker
     ( runCrocker
     , Configuration (..)
     , getConfiguration
-    , runConfiguration
+    , reapWaiting
+    , waitPid
+    , execute
     ) where
 
 import           Control.Concurrent             (forkIO, newEmptyMVar, tryPutMVar, takeMVar, forkIO, threadDelay)
@@ -70,9 +72,6 @@ runConfiguration conf@(Configuration _ sched cmd) = do
     if scheduleMatches sched upd
     then info ("Executing " <> unwords cmd) >> return (head cmd, tail cmd)
     else runConfiguration conf
-
-tt :: IO ()
-tt = pid1 $ getConfiguration (words "* * * * * /bin/date") >>= runConfiguration
 
 -- Launch a sub-process
 execute :: FilePath -> [String] -> IO ProcessID

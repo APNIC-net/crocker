@@ -44,6 +44,8 @@ test-suite crocker-test
   ghc-options:         -Wall -threaded -rtsopts=none -no-rtsopts-suggestions
   build-depends:       base >= 4.7 && < 5
                       , crocker
+                      , stm
+                      , unix
                       , test-framework
                       , test-framework-hunit
                       , HUnit
