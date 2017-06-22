@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-module Main where
+module Crocker (runCrocker) where
 
 import           Control.Concurrent             (forkIO, newEmptyMVar, tryPutMVar, takeMVar, forkIO, threadDelay)
 import           Control.Concurrent.STM         (atomically, TVar, readTVar, writeTVar, newTVar)

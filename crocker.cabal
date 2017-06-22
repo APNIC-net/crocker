@@ -13,10 +13,9 @@ build-type:          Simple
 cabal-version:       >=1.10
 extra-source-files:  README.md
 
-executable crocker
+library
+  exposed-modules:     Crocker
   hs-source-dirs:      src
-  --c-sources:           src/Reaper.c
-  main-is:             Main.hs
   other-modules:       Reaper
   default-language:    Haskell2010
   ghc-options:         -Wall -threaded -rtsopts=none -no-rtsopts-suggestions
@@ -28,3 +27,11 @@ executable crocker
                      , text
                      , time
                      , unix
+
+executable crocker
+  hs-source-dirs:      exec
+  main-is:             Main.hs
+  default-language:    Haskell2010
+  ghc-options:         -Wall -threaded -rtsopts=none -no-rtsopts-suggestions
+  build-depends:       base >= 4.7 && < 5
+                     , crocker
