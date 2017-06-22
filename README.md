@@ -36,7 +36,7 @@ Here's an example Dockerfile:
 ```Dockerfile
 FROM busybox
 
-ADD https://github.com/APNIC-net/crocker/releases/download/v0.1.0/crocker /crocker
+ADD https://github.com/APNIC-net/crocker/releases/download/v0.2.0/crocker /crocker
 RUN chmod a+x /crocker
 
 ENTRYPOINT ["/crocker", "-A", "@daily", "/bin/echo", "it is a brand new day"]
