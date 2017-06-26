@@ -10,12 +10,13 @@ module Crocker
     , execute
     ) where
 
-import           Control.Concurrent             (forkIO, newEmptyMVar, tryPutMVar, takeMVar, forkIO, threadDelay)
+import           Control.Concurrent             (newEmptyMVar, tryPutMVar, takeMVar, forkIO, threadDelay)
 import           Control.Concurrent.STM         (atomically, TVar, readTVar, writeTVar, newTVar)
 import           Control.Concurrent.STM.TChan   (TChan, newTChan, readTChan, writeTChan)
 import           Control.Exception              (catch, throwIO)
 import           Control.Monad                  (void, forever, when)
 import           Data.Attoparsec.Text           (parse, IResult (..))
+import           Data.IORef                     (IORef, newIORef, readIORef, writeIORef)
 import           Data.Monoid                    ((<>))
 import           Data.Text                      (Text)
 import qualified Data.Text as T
@@ -60,18 +61,25 @@ info msg = do
     now <- getCurrentTime
     putStrLn (show now <> ": " <> msg)
 
-runConfiguration :: Configuration -> IO (FilePath, [String])
-runConfiguration conf@(Configuration _ sched cmd) = do
-    now <- getCurrentTime
-    let maxSleep = 2^(20 :: Integer)
-    let next = nextMatch sched now
-    let delay = round . (* 1000000) . flip diffUTCTime now <$> next :: Maybe Integer
-    let sleep = maybe maxSleep (max maxSleep) delay
-    threadDelay (fromIntegral sleep)
-    upd <- getCurrentTime
-    if scheduleMatches sched upd
-    then info ("Executing " <> unwords cmd) >> return (head cmd, tail cmd)
-    else runConfiguration conf
+runConfiguration :: IORef Bool -> Configuration -> IO (FilePath, [String])
+runConfiguration runNowRef (Configuration _ sched cmd) = do
+    runNow <- readIORef runNowRef
+    if runNow
+    then writeIORef runNowRef False
+    else waitSchedule
+    info ("Executing " <> unwords cmd) >> return (head cmd, tail cmd)
+  where
+    waitSchedule = do
+        now <- getCurrentTime
+        let maxSleep = 2^(20 :: Integer)
+        let next = nextMatch sched now
+        let delay = round . (* 1000000) . flip diffUTCTime now <$> next :: Maybe Integer
+        let sleep = maybe maxSleep (max maxSleep) delay
+        threadDelay (fromIntegral sleep)
+        upd <- getCurrentTime
+        if scheduleMatches sched upd
+        then pure ()
+        else waitSchedule
 
 -- Launch a sub-process
 execute :: FilePath -> [String] -> IO ProcessID
@@ -83,8 +91,12 @@ runCrocker = do
     if pid == 1
     then do
         conf <- getArgs >>= getConfiguration
-        --TODO when (runAtStart conf) $ callProcess (head $ command conf) (tail $ command conf)
-        pid1 $ runConfiguration conf
+        ref <- newIORef $ runAtStart conf
+        next <- nextMatch (schedule conf) <$> getCurrentTime
+        case next of
+            Just t -> info ("Crocker ready, next scheduled invocation at " <> show t)
+            Nothing -> info "Warning: schedule will never match"
+        pid1 $ runConfiguration ref conf
     else putStrLn "This program must be run as PID 1 inside a docker container."
 
 {- pid1 package isn't general purpose enough for this, so below code is largely taken from there  -}
@@ -115,7 +127,8 @@ pid1 execf = do
 
     -- Catch SIGCHLD, ignoring stopped children
     void $ setStoppedChildFlag False
-    void $ installHandler sigCHLD (Catch $ reapWaiting watching terminated `ifNotExistsThen` ()) Nothing
+    void $ installHandler sigCHLD
+        (Catch $ reapWaiting watching terminated `ifNotExistsThen` ()) Nothing
 
     -- Ask for the next process to be run
     void $ forkIO $ forever $ do

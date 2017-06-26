@@ -2,6 +2,11 @@
 
 Notable changes to this project will be documented in this file.
 
+## [0.3.0] - TBD
+### Added
+ - Multi-stage Dockerfile to build image containing only crocker binary
+ - Repaired "run at start" functionality
+
 ## [0.2.0] - 2017-06-22
 ### Added
  - Test cases
