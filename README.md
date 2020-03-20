@@ -21,7 +21,7 @@ logs to standard out, including reporting error exit codes for the tasks it exec
 
 ## Usage
 
-    crocker [--at-start|-A] <cron exrepssion> <command> [<arg> ...]
+    crocker [--at-start|-A] <cron expression> <command> [<arg> ...]
 
 CRON expressions are the usual. If the `--at-start` or `-A` option is given, the command is immediately executed on
 launch.
